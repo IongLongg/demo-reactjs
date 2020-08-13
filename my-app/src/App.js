@@ -1,14 +1,21 @@
 import React from 'react';
 // import logo from './logo.svg';
 import './App.css';
-import Row1 from './components/Row1'
-import Row2 from './components/Row2'
+import Square from './components/Square'
 
 function App() {
-  const list = [1, 2, 3, 4, 5, ,6, 7, 8]
-  return list.map(item => {
-    return (item%2) ? <div><Row1/></div> : <div><Row2/></div> 
-  })
+  const list = [];
+  for(let i=1; i<=64; i++){
+    let color = '';
+    const row = Math.ceil(i/8);
+    const check = row + i;
+    if(check%2 != 0)
+      color = 'black';
+    else 
+      color = 'white';
+    list.push(<Square colorSquare={color}></Square>)
+  }
+return <div className="container">{list}</div>
 }
 
 export default App;
