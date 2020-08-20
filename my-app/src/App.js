@@ -4,54 +4,43 @@ import './App.css';
 import Square from './components/Square'
 
 function App() {
-  const [result, setResult] = useState();
+  // const [status, setStatus] = useState();
+  const [wrongId, setWrongId] = useState([]);
 
   const listId = [];
-  const pushId = (id) => {
-    listId.push(id)
-    console.log(listId);
-  }  
+  const listTrueId = [];
 
-  const checkId = (id) => {
-    if(listId.length !== 1){
-      if(id === listId[0]){
-        listId.splice(0, listId.length);
-        console.log("chon dung");
-      }
-      else{
-        console.log("chon sai");
-      }
-    }  
-  }
+  const checkId = (id) => {   
+    if(listTrueId.indexOf(id) === -1) 
+      listId.push(id);
 
-  const shuffle = (array) => {
-    var currentIndex = array.length, temporaryValue, randomIndex;
-  
-    // While there remain elements to shuffle...
-    while (0 !== currentIndex) {
-  
-      // Pick a remaining element...
-      randomIndex = Math.floor(Math.random() * currentIndex);
-      currentIndex -= 1;
-  
-      // And swap it with the current element.
-      temporaryValue = array[currentIndex];
-      array[currentIndex] = array[randomIndex];
-      array[randomIndex] = temporaryValue;
+    if(listId.length === 2){
+      if(listId[0] === listId[1]){
+        listTrueId.push(listId[0]);
+        console.log('chon dung');
+      }
+      else if(listId[0] !== listId[1]){
+        console.log('chon sai', listId);
+        setWrongId(listId);
+      }
+      listId.splice(0, 2);
     }
-  
-    return array;
+
+    if(listTrueId.length === 8)
+      alert('Win roi');
   }
+
+
 
   let list = [];
   for(let i=1; i<=16; i++){
     const id = i%8;
-    list.push(<Square pushId={pushId} id={id} checkId={checkId}></Square>);
+    list.push(<Square id={id} checkId={checkId} wrongId={wrongId}></Square>);
   }
 
   return (
     <div className='container'>
-        {shuffle(list)}
+        {list}
     </div>
   )
 }
