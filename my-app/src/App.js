@@ -1,55 +1,141 @@
-import React, { useState, useEffect } from 'react';
-// import logo from './logo.svg';
-import './App.css';
-import Square from './components/Square'
+import React, { useState } from "react";
+import { useForm } from "react-hook-form";
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route,
+  Link,
+  Redirect,
+  useHistory,
+  useLocation,
+} from "react-router-dom";
+import Game from "./routers/Game";
+import "./App.css";
 
-function App() {
-  const [wrongId, setWrongId] = useState([]);
-  const [isChecking, setIsChecking] = useState(false);
-
-  const listId = [];
-  const listTrueId = [];
-  const listWrongId = [];
-  // tao list anh
-  const createImages = (list = []) => {
-    if (list.length) return list;
-    for (let i = 1; i <= 16; i++) {
-      const id = i % 8;
-      list.push(<Square id={id} checkId={checkId} wrongId={wrongId}></Square>);
-    }
-    return list
-  };
-  // check
-  const checkId = (id) => {
-    if (listTrueId.indexOf(id) === -1) listId.push(id);
-    if (listId.length === 2) {
-      // disable click
-      setIsChecking(true);
-      if (listId[0] === listId[1]) {
-        listTrueId.push(listId[0]);
-        console.log('chon dung');
-        // enable click
-        setIsChecking(false);
-      }
-      else if (listId[0] !== listId[1]) {
-        console.log('chon sai', listId);
-        listWrongId.push(...listId);
-        setTimeout(() => {
-          console.log('chon tiep');
-          setWrongId(listWrongId);
-          // enable click
-          setIsChecking(false);
-        }, 2000)
-      }
-      listId.splice(0, 2);
-    }
-    if (listTrueId.length === 8) alert('Win roi');
-  }
+export default function App() {
   return (
-    <div style={{ pointerEvents: isChecking ? 'none' : 'auto' }} className='container'>
-      {createImages()}
-    </div>
-  )
+    <Router>
+      <div>
+        <ul>
+          <li>
+            <Link to="/">Home</Link>
+          </li>
+          <li>
+            <Link to="/game">Game</Link>
+          </li>
+        </ul>
+
+        <hr />
+
+        <Switch>
+          <Route exact path="/">
+            <Home />
+          </Route>
+          <Route path="/login">
+            <LoginPage />
+          </Route>
+          <PrivateRoute path="/game">
+            <AuthButton />
+            <Game />
+          </PrivateRoute>
+        </Switch>
+      </div>
+    </Router>
+  );
 }
 
-export default App;
+// You can think of these components as "pages"
+// in your app.
+
+// fake event
+const fakeAuth = {
+  isAuthenticated: false,
+  authenticate(cb) {
+    fakeAuth.isAuthenticated = true;
+    setTimeout(cb, 100); // fake async
+  },
+  signout(cb) {
+    fakeAuth.isAuthenticated = false;
+    setTimeout(cb, 100);
+  },
+};
+
+function AuthButton() {
+  let history = useHistory();
+
+  return fakeAuth.isAuthenticated ? (
+    <div>
+      <p>Welcome {"Long"}</p>
+      <button
+        onClick={() => {
+          fakeAuth.signout(() => history.push("/"));
+        }}
+      >
+        Sign out
+      </button>
+    </div>
+  ) : null;
+}
+
+// define PrivateRoute
+function PrivateRoute({ children, ...rest }) {
+  return (
+    <Route
+      {...rest}
+      render={({ location }) =>
+        fakeAuth.isAuthenticated ? (
+          children
+        ) : (
+          <Redirect
+            to={{
+              pathname: "/login", // placeholder page
+              state: { from: location },
+            }}
+          />
+        )
+      }
+    />
+  );
+}
+
+function Home() {
+  return (
+    <div>
+      <h2>Home</h2>
+    </div>
+  );
+}
+
+function LoginPage() {
+  let history = useHistory();
+  let location = useLocation();
+  const { register, handleSubmit, errors } = useForm();
+
+  let { from } = location.state || { from: { pathname: "/" } };
+  let login = (data) => {
+    console.log(data);
+    fakeAuth.authenticate(() => {
+      history.replace(from); // allow back to home and still login
+    });
+  };
+
+  return (
+    <div>
+      <p>You must log in to view the Game</p>
+      <form onSubmit={handleSubmit(login)}>
+        <input name="email" type="email" placeholder="Email" ref={register} />
+        <input
+          name="password"
+          type="password"
+          placeholder="Password"
+          ref={register({
+            required: { value: true, message: "Password is required"},
+            minLength: { value: 8, message: "Too short" }
+          })}
+        />
+        <input type="submit" />
+        <p>{errors.password && errors.password.message}</p>
+      </form>
+    </div>
+  );
+}
